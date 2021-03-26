@@ -583,7 +583,7 @@ def get_package_paths(package):
     return pkg_base, pkg_dir
 
 
-def collect_submodules(package, filter=lambda name: True):
+def collect_submodules(package, filter=lambda name: True, extra_import_code=''):
     """
     :param package: A string which names the package which will be search for
         submodules.
@@ -620,7 +620,7 @@ def collect_submodules(package, filter=lambda name: True):
         import sys
         import pkgutil
         import traceback
-
+        {}
         # ``pkgutil.walk_packages`` doesn't walk subpackages of zipped files
         # per https://bugs.python.org/issue14209. This is a workaround.
         def walk_packages(path=None, prefix='', onerror=None):
@@ -661,7 +661,7 @@ def collect_submodules(package, filter=lambda name: True):
 
         for module_loader, name, ispkg in walk_packages([{}], '{}.'):
             print('\\n$_pyi:' + name + '*')
-        """.format(
+        """.format(extra_import_code,
                   # Use repr to escape Windows backslashes.
                   repr(pkg_dir), package))
 

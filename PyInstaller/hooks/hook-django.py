@@ -33,15 +33,22 @@ if root_dir:
     logger.info('Django root directory %s', root_dir)
     # Include imports from the mysite.settings.py module.
     settings_py_imports = django_dottedstring_imports(root_dir)
-    # Include all submodules of all imports detected in mysite.settings.py.
-    for submod in settings_py_imports:
-        hiddenimports.append(submod)
-        hiddenimports += collect_submodules(submod)
-    # Include main django modules - settings.py, urls.py, wsgi.py.
-    # Without them the django server won't run.
+
     package_name = os.path.basename(root_dir)
     default_settings_module = f'{package_name}.settings'
     settings_module = os.environ.get('DJANGO_SETTINGS_MODULE', default_settings_module)
+    django_setup_code = """
+        import django
+        import os
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{}")
+        django.setup()
+    """.format(settings_module)
+    # Include all submodules of all imports detected in mysite.settings.py.
+    for submod in settings_py_imports:
+        hiddenimports.append(submod)
+        hiddenimports += collect_submodules(submod, extra_import_code=django_setup_code)
+    # Include main django modules - settings.py, urls.py, wsgi.py.
+    # Without them the django server won't run.
     hiddenimports += [
             # TODO Consider including 'mysite.settings.py' in source code as a data files.
             #      Since users might need to edit this file.
